@@ -29,6 +29,31 @@ async def create_tg_user(
     )
     return user
 
+async def create_tg_location(
+        latitude: float,
+        longitude: float,
+        name: str | None = None,
+        socket_type: str | None = None,
+        description: str | None = None,
+        layer: str | None = None,
+        created_by: TG_user | None = None,
+) -> TG_location:
+    location = await TG_location.create(
+        latitude=latitude,
+        longitude=longitude,
+        name=name,
+        socket_type=socket_type,
+        description=description,
+        layer=layer,
+        updated_by=created_by,
+        created_by=created_by
+    )
+    return location
+
 async def get_tg_user(user_id: int) -> TG_user | None:
     user = await TG_user.get_or_none(id=user_id)
     return user
+
+async def get_tg_location(location_id: int) -> TG_location | None:
+    location = await TG_location.get_or_none(id=location_id)
+    return location
