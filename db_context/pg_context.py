@@ -1,16 +1,14 @@
-import os
-from dotenv import load_dotenv
 from tortoise import Tortoise
 from db_context.models import TG_user, TG_location, TG_image
+import settings
 
-load_dotenv()
-ENV = os.getenv("ENVIRONMENT", "prod").lower()
+ENV = settings.ENV
 
 async def init_db() -> None:
     await Tortoise.init(
-        db_url=f"postgres://{os.getenv('POSTGRES_USER')}:{os.getenv('POSTGRES_PASSWORD')}@"
-               f"{os.getenv('POSTGRES_HOST')}:{int(os.getenv('POSTGRES_PORT'))}/{os.getenv('POSTGRES_DB')}",
-        modules={"models": ["db_context.bot_models"]}
+        db_url=f"postgres://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@"
+               f"{settings.POSTGRES_HOST}:{int(settings.POSTGRES_PORT)}/{settings.POSTGRES_DB}",
+        modules={"models": ["db_context.models"]}
     )
     if ENV == 'dev':
         await Tortoise.generate_schemas()
