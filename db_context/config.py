@@ -1,7 +1,7 @@
 import settings
 
 TORTOISE_ORM = {
-    'connections': {'default': 'postgres://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@'
+    'connections': {'default': f'postgres://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@'
                f'{settings.POSTGRES_HOST}:{int(settings.POSTGRES_PORT)}/{settings.POSTGRES_DB}'},
     'apps': {
         'models': {
