@@ -2,7 +2,6 @@ from tortoise import Tortoise
 from db_context.models import TG_user, TG_location, TG_image
 import settings
 
-ENV = settings.ENVIRONMENT
 
 async def init_db() -> None:
     await Tortoise.init(
@@ -10,8 +9,6 @@ async def init_db() -> None:
                f'{settings.POSTGRES_HOST}:{int(settings.POSTGRES_PORT)}/{settings.POSTGRES_DB}',
         modules={'models': ['db_context.models', 'aerich.models']}
     )
-#    if ENV == 'dev':
-#        await Tortoise.generate_schemas()
 
 async def close_db() -> None:
     await Tortoise.close_connections()
