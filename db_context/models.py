@@ -1,6 +1,5 @@
 from tortoise import fields, models
 from db_context.custom_validators import EmptyValueValidator
-from tortoise.contrib.postgres.fields import GeometryField
 
 class TG_user(models.Model):
     id = fields.BigIntField(primary_key=True, generated=False)
@@ -20,7 +19,8 @@ class TG_user(models.Model):
 
 class TG_location(models.Model):
     id = fields.IntField(primary_key=True)
-    location = GeometryField(null=False)
+    latitude = fields.FloatField(null=False)
+    longitude = fields.FloatField(null=False)
     name = fields.CharField(max_length = 255, null=True, validators=[EmptyValueValidator()])
     socket_type = fields.CharField(max_length=4, null=True, validators=[EmptyValueValidator()])
     description = fields.CharField(max_length = 2000, null=True, validators=[EmptyValueValidator()])

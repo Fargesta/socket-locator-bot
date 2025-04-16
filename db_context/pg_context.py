@@ -2,16 +2,16 @@ from tortoise import Tortoise
 from db_context.models import TG_user, TG_location, TG_image
 import settings
 
-ENV = settings.ENV
+ENV = settings.ENVIRONMENT
 
 async def init_db() -> None:
     await Tortoise.init(
-        db_url=f"postgres://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@"
-               f"{settings.POSTGRES_HOST}:{int(settings.POSTGRES_PORT)}/{settings.POSTGRES_DB}",
-        modules={"models": ["db_context.models"]}
+        db_url=f'postgres://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@'
+               f'{settings.POSTGRES_HOST}:{int(settings.POSTGRES_PORT)}/{settings.POSTGRES_DB}',
+        modules={'models': ['db_context.models', 'aerich.models']}
     )
-    if ENV == 'dev':
-        await Tortoise.generate_schemas()
+#    if ENV == 'dev':
+#        await Tortoise.generate_schemas()
 
 async def close_db() -> None:
     await Tortoise.close_connections()
