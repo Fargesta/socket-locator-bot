@@ -1,8 +1,10 @@
-from telegram import Update
-from telegram.ext import ContextTypes
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram.ext import ContextTypes, ConversationHandler
 import db_context.pg_context as pg_context
 
-async def location_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+SOCKET_TYPE = range(1, 5)
+
+async def save_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = None
     try:
         user = await pg_context.get_tg_user(update.effective_user.id)
@@ -23,3 +25,28 @@ async def location_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -
         print(f"Something went wrong: {e}")
     finally:
         await pg_context.close_db()
+
+async def handle_location_entry(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+    location = update.message.location
+    context.user_data["location"] = (location.latitude, location.longitude)
+    context.user_data["messages_to_delete"] = [update.message.message_id]
+
+    keyboard = [
+        [InlineKeyboardButton("220V", callback_data="socket_220"), InlineKeyboardButton("380V 4 pin", callback_data="socket_380_4")],
+        [InlineKeyboardButton("380V 5 pin", callback_data="socket_380_5"), InlineKeyboardButton("Don't know", callback_data="unknown")],
+        [InlineKeyboardButton("Cancel", callback_data="cancel")],
+    ]
+    reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
+
+    await update.message.reply_text('<b>Please choose:</b>', parse_mode='HTML', reply_markup=reply_markup)
+    return SOCKET_TYPE
+
+async def handle_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    selection = update.message.text
+    location = context.user_data.get("location")
+
+    await update.message.reply_text(
+        f"You selected '{selection}' with location: {location}",
+        reply_markup=ReplyKeyboardRemove()
+    )
+    return ConversationHandler.END
