@@ -1,8 +1,9 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram import InlineKeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ContextTypes, ConversationHandler
 import db_context.pg_context as pg_context
+from bot_logic.handler_cancel import cancel
 
-SOCKET_TYPE = range(1, 5)
+SOCKET_TYPE, SOCKET_DESCRIPTION = range(1, 5)
 
 async def save_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = None
@@ -32,17 +33,21 @@ async def handle_location_entry(update: Update, context: ContextTypes.DEFAULT_TY
     context.user_data["messages_to_delete"] = [update.message.message_id]
 
     keyboard = [
-        [InlineKeyboardButton("220V", callback_data="socket_220"), InlineKeyboardButton("380V 4 pin", callback_data="socket_380_4")],
-        [InlineKeyboardButton("380V 5 pin", callback_data="socket_380_5"), InlineKeyboardButton("Don't know", callback_data="unknown")],
+        [InlineKeyboardButton("220V 2 pin", callback_data="220V"), InlineKeyboardButton("380V 4 pin", callback_data="4PIN")],
+        [InlineKeyboardButton("380V 5 pin", callback_data="5PIN"), InlineKeyboardButton("Don't know", callback_data="UNKN")],
         [InlineKeyboardButton("Cancel", callback_data="cancel")],
     ]
     reply_markup=ReplyKeyboardMarkup(keyboard, resize_keyboard=True)
 
-    await update.message.reply_text('<b>Please choose:</b>', parse_mode='HTML', reply_markup=reply_markup)
+    await update.message.reply_text('<b>Please choose socket type:</b>', parse_mode='HTML', reply_markup=reply_markup)
     return SOCKET_TYPE
 
 async def handle_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     selection = update.message.text
+
+    if selection == "/cancel":
+        return await cancel(update, context)
+
     location = context.user_data.get("location")
 
     await update.message.reply_text(
