@@ -1,9 +1,9 @@
 from telegram import InlineKeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove, Update
 from telegram.ext import ContextTypes, ConversationHandler
 import db_context.pg_context as pg_context
-from bot_logic.handler_cancel import cancel
+from bot_logic.handler_cancel import cancel_command
 
-SOCKET_TYPE, SOCKET_DESCRIPTION = range(1, 5)
+SOCKET_TYPE = range(1, 5)
 
 async def save_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = None
@@ -46,7 +46,7 @@ async def handle_selection(update: Update, context: ContextTypes.DEFAULT_TYPE):
     selection = update.message.text
 
     if selection == "/cancel":
-        return await cancel(update, context)
+        return await cancel_command(update, context)
 
     location = context.user_data.get("location")
 
