@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 import db_context.pg_context as pg_context
 from bot_logic.handler_cancel import cancel_callback
 
-WAITNG_FOR_TYPE, ADD_DESCRIPTION = range(2)
+ASK_FOR_TYPE, ADD_DESCRIPTION, ASK_FOR_IMAGE = range(3)
 
 async def save_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = None
@@ -26,11 +26,31 @@ async def save_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         print(f"Something went wrong: {e}")
     finally:
         await pg_context.close_db()
+        
 
-async def ask_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
     location = update.message.location
-    context.user_data['location'] = (location.latitude, location.longitude)
-    context.user_data['messages_to_delete'] = update.message.message_id
+    context.user_data["location"] = (location.latitude, location.longitude)
+    context.user_data["messages_to_delete"] = [update.message.message_id]
+
+    keyboard = [
+            [InlineKeyboardButton("❌ Cancel", callback_data="cancel")]
+        ]
+    sent = await update.message.reply_text(
+        "📸 Please send a photo of this location.",
+        reply_markup=InlineKeyboardMarkup(keyboard)
+    )
+    context.user_data["messages_to_delete"].append(sent.message_id)
+    return ASK_FOR_IMAGE
+
+
+async def ask_for_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    photo = update.message.photo
+    if not photo:
+        return
+    
+    context.user_data["photo_file_id"] = photo[-1].file_id
+    context.user_data["messages_to_delete"].append(update.message.message_id)
 
     keyboard = [
         [InlineKeyboardButton("220V 2 Pin", callback_data="220V"), InlineKeyboardButton("380V 4 Pin", callback_data="4PIN")],
@@ -41,9 +61,27 @@ async def ask_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sent = await update.message.reply_text("Please select socket type:", reply_markup=reply_markup)
     context.user_data['messages_to_delete'] = [update.message.message_id, sent.message_id]
 
-    return WAITNG_FOR_TYPE
+    return ASK_FOR_TYPE
 
-async def ask_type_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+
+# async def ask_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
+#     location = update.message.location
+#     context.user_data['location'] = (location.latitude, location.longitude)
+#     context.user_data['messages_to_delete'] = update.message.message_id
+
+#     keyboard = [
+#         [InlineKeyboardButton("220V 2 Pin", callback_data="220V"), InlineKeyboardButton("380V 4 Pin", callback_data="4PIN")],
+#         [InlineKeyboardButton("380V 5 Pin", callback_data="5PIN"), InlineKeyboardButton("Unknown", callback_data="UNKN")],
+#         [InlineKeyboardButton("Cancel", callback_data="CANCEL")]
+#     ]
+#     reply_markup = InlineKeyboardMarkup(keyboard)
+#     sent = await update.message.reply_text("Please select socket type:", reply_markup=reply_markup)
+#     context.user_data['messages_to_delete'] = [update.message.message_id, sent.message_id]
+
+#     return WAITNG_FOR_TYPE
+
+
+async def ask_for_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     
@@ -58,6 +96,7 @@ async def ask_type_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['messages_to_delete'].append(msg.message_id)
 
     return ADD_DESCRIPTION
+
 
 async def handle_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
     text = update.message.text
