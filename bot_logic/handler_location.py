@@ -1,8 +1,9 @@
-from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
-from telegram.ext import ContextTypes
+from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRemove, Update
+from telegram.ext import ContextTypes, ConversationHandler
 import db_context.pg_context as pg_context
+from bot_logic.handler_cancel import cancel_callback
 
-WAITNG_FOR_TYPE = range(1)
+WAITNG_FOR_TYPE, ADD_DESCRIPTION = range(2)
 
 async def save_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = None
@@ -36,8 +37,40 @@ async def ask_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("380V 5 Pin", callback_data="5PIN"), InlineKeyboardButton("Unknown", callback_data="UNKN")],
         [InlineKeyboardButton("Cancel", callback_data="CANCEL")]
     ]
-    reply_markup = InlineKeyboardMarkup(keyboard, one_time_keyboard=True)
+    reply_markup = InlineKeyboardMarkup(keyboard)
     sent = await update.message.reply_text("Please select socket type:", reply_markup=reply_markup)
     context.user_data['messages_to_delete'] = [update.message.message_id, sent.message_id]
 
     return WAITNG_FOR_TYPE
+
+async def ask_type_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    callback_data = query.data
+    if callback_data == "CANCEL":
+        await cancel_callback(update, context)
+
+    context.user_data['selected_type'] = callback_data
+    context.user_data['messages_to_delete'].append(query.message.message_id)
+
+    msg = await query.message.reply_text("Please provide a description for the location:", reply_markup=ReplyKeyboardRemove())
+    context.user_data['messages_to_delete'].append(msg.message_id)
+
+    return ADD_DESCRIPTION
+
+async def handle_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    context.user_data["description"] = text
+    context.user_data["messages_to_delete"].append(update.message.message_id)
+
+    summary = (
+        f"✅ Saved!\n\n"
+        f"📍 Location: {context.user_data.get('location')}\n"
+        f"🅿️ Option: {context.user_data.get('selected_type')}\n"
+        f"📝 Description: {text}"
+    )
+    msg = await update.message.reply_text(summary)
+    context.user_data["messages_to_delete"].append(msg.message_id)
+
+    return ConversationHandler.END

@@ -1,7 +1,8 @@
 from telegram import Update
 from telegram.ext import ContextTypes, ConversationHandler
 
-async def cancel_callback(query, context: ContextTypes.DEFAULT_TYPE):
+async def cancel_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
     await query.answer()
     context.user_data.setdefault("messages_to_delete", []).append(query.message.message_id)
 
