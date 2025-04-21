@@ -55,7 +55,7 @@ async def ask_for_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     keyboard = [
         [InlineKeyboardButton("220V 2 Pin", callback_data="220V"), InlineKeyboardButton("380V 4 Pin", callback_data="4PIN")],
         [InlineKeyboardButton("380V 5 Pin", callback_data="5PIN"), InlineKeyboardButton("Unknown", callback_data="UNKN")],
-        [InlineKeyboardButton("Cancel", callback_data="CANCEL")]
+        [InlineKeyboardButton("❌ Cancel", callback_data="CANCEL")]
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
     sent = await update.message.reply_text("Please select socket type:", reply_markup=reply_markup)
@@ -75,7 +75,11 @@ async def ask_for_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
     context.user_data['selected_type'] = callback_data
     context.user_data['messages_to_delete'].append(query.message.message_id)
 
-    msg = await query.message.reply_text("Please provide a description for the location:", reply_markup=ReplyKeyboardRemove())
+    keyboard = [
+        [InlineKeyboardButton("⏭️ Skip", callback_data="SKIP")], [InlineKeyboardButton("❌ Cancel", callback_data="cancel")]
+    ]
+
+    msg = await query.message.reply_text("Please provide a description for the location:", reply_markup=InlineKeyboardMarkup(keyboard))
     context.user_data['messages_to_delete'].append(msg.message_id)
 
     return ASK_FOR_DESCRIPTION
@@ -87,12 +91,31 @@ async def ask_for_description(update: Update, context: ContextTypes.DEFAULT_TYPE
     context.user_data["messages_to_delete"].append(update.message.message_id)
 
     summary = (
-        f"✅ Saved!\n\n"
+        f"✅ Please confirm!\n\n"
         f"📍 Location: {context.user_data.get('location')}\n"
         f"🅿️ Option: {context.user_data.get('selected_type')}\n"
         f"📝 Description: {text}"
     )
     msg = await update.message.reply_text(summary)
+    context.user_data["messages_to_delete"].append(msg.message_id)
+
+    return ConversationHandler.END
+
+
+async def skip_description(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    
+    context.user_data["description"] = None
+    context.user_data["messages_to_delete"].append(query.message.message_id)
+
+    summary = (
+        f"✅ Please confirm!\n\n"
+        f"📍 Location: {context.user_data.get('location')}\n"
+        f"🅿️ Option: {context.user_data.get('selected_type')}\n"
+        f"📝 Description: Skipped"
+    )
+    msg = await query.message.reply_text(summary)
     context.user_data["messages_to_delete"].append(msg.message_id)
 
     return ConversationHandler.END

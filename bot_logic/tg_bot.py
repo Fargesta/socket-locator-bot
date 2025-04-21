@@ -12,7 +12,8 @@ from bot_logic.handler_location import (ASK_FOR_DESCRIPTION,
                                         handle_location,
                                         ask_for_image,
                                         ask_for_type,
-                                        ask_for_description)
+                                        ask_for_description,
+                                        skip_description)
 from bot_logic.handler_cancel import cancel_callback, cancel_command
 import settings
 
@@ -37,6 +38,8 @@ def bot_start() -> None:
             ],
             ASK_FOR_DESCRIPTION: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, ask_for_description),
+                CallbackQueryHandler(skip_description, pattern="^SKIP$"),
+                CallbackQueryHandler(cancel_callback, pattern="^CANCEL$"),
                 CommandHandler("cancel", cancel_command),
             ]
         },
