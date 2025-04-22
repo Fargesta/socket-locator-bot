@@ -2,30 +2,41 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, ReplyKeyboardRe
 from telegram.ext import ContextTypes, ConversationHandler
 import db_context.pg_context as pg_context
 from bot_logic.handler_cancel import cancel_callback
+from bot_logic.type_converter import type_to_name
 
-ASK_FOR_TYPE, ASK_FOR_DESCRIPTION, ASK_FOR_IMAGE = range(3)
+ASK_FOR_TYPE, ASK_FOR_DESCRIPTION, ASK_FOR_IMAGE, CONFIRM_SAVE = range(4)
 
-async def save_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def confirm_save(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = None
+    query = update.callback_query
+    await query.answer()
+
     try:
         user = await pg_context.get_tg_user(update.effective_user.id)
         if not user:
+            await query.message.reply_text("❌ User not found. Cannot save.")
             raise Exception("User not found in the database.")
         
+        lat, lon = context.user_data.get("location")
+        sc_type = context.user_data.get("selected_type")
         await pg_context.create_tg_location(
-            latitude=update.message.location.latitude,
-            longitude=update.message.location.longitude,
-            name="Test",
-            socket_type="220",
-            description="First location",
-            layer="Test",
+            latitude=lat,
+            longitude=lon,
+            name=type_to_name(sc_type),
+            socket_type=sc_type,
+            description=context.user_data.get("description"),
             created_by=user
         )
+
+        context.user_data["messages_to_delete"].append(query.message.message_id)
+        msg = await query.message.reply_text("✅ Location saved successfully!")
+        context.user_data["messages_to_delete"].append(msg.message_id)
         
     except Exception as e:
         print(f"Something went wrong: {e}")
     finally:
         await pg_context.close_db()
+        return ConversationHandler.END
         
 
 async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -116,4 +127,5 @@ async def handle_description_input(update: Update, context: ContextTypes.DEFAULT
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     context.user_data["messages_to_delete"].append(msg.message_id)
-    return ConversationHandler.END
+
+    return CONFIRM_SAVE

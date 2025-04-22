@@ -9,10 +9,12 @@ from bot_logic.handler_start import start_command
 from bot_logic.handler_location import (ASK_FOR_DESCRIPTION,
                                         ASK_FOR_TYPE,
                                         ASK_FOR_IMAGE,
+                                        CONFIRM_SAVE,
                                         handle_location,
                                         ask_for_image,
                                         ask_for_type,
-                                        handle_description_input)
+                                        handle_description_input,
+                                        confirm_save)
 from bot_logic.handler_cancel import cancel_callback, cancel_command
 import settings
 
@@ -29,17 +31,21 @@ def bot_start() -> None:
         states={
             ASK_FOR_IMAGE: [
                 MessageHandler(filters.PHOTO, ask_for_image),
-                CallbackQueryHandler(cancel_callback, pattern="^cancel$"),
+                CallbackQueryHandler(cancel_callback, pattern="^CANCEL$"),
             ],
             ASK_FOR_TYPE:[
                 CallbackQueryHandler(ask_for_type),
-                CallbackQueryHandler(cancel_callback, pattern="^cancel$"),
+                CallbackQueryHandler(cancel_callback, pattern="^CANCEL$"),
             ],
             ASK_FOR_DESCRIPTION: [
                 MessageHandler(filters.TEXT & ~filters.COMMAND, handle_description_input),
                 CallbackQueryHandler(handle_description_input, pattern="^SKIP$"),
                 CallbackQueryHandler(cancel_callback, pattern="^CANCEL$"),
                 CommandHandler("cancel", cancel_command),
+            ],
+            CONFIRM_SAVE: [
+                CallbackQueryHandler(confirm_save, pattern="^CONFIRM$"),
+                CallbackQueryHandler(cancel_callback, pattern="^CANCEL$")
             ]
         },
         fallbacks=[CommandHandler("cancel", cancel_command)],
