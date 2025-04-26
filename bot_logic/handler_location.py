@@ -41,7 +41,7 @@ async def confirm_save(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         await pg_context.create_tg_image(
             url=UPLOAD_FOLDER_URL,
-            file_size=upload["size"],
+            file_size=cast(int, upload["size"]),
             file_id=upload["id"],
             location=location,
             file_saved=True,

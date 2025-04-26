@@ -16,13 +16,13 @@ class GDriveBotService:
             timestamp = int(time.time())
             filename = f"image_{user_id}_{timestamp}.jpg"
         
-        file_id = await self.gdrive.upload_image(file_bytes, filename)
+        result = await self.gdrive.upload_image(file_bytes, filename)
         
         if user_id not in self.user_images:
             self.user_images[user_id] = []
-        self.user_images[user_id].append(file_id)
+        self.user_images[user_id].append(result['id'])
         
-        return file_id
+        return result
         
     async def upload_telegram_photo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         file_id = context.user_data.get("photo_file_id")

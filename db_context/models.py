@@ -8,7 +8,7 @@ class TG_user(models.Model):
     username = fields.CharField(max_length=255, null=True, validators=[EmptyValueValidator()])
     language_code = fields.CharField(max_length=10, null=True, validators=[EmptyValueValidator()])
     created_at = fields.DatetimeField(auto_now_add=True)
-    is_active = fields.BooleanField(default=True)
+    is_active = fields.BooleanField(default=False)
 
     locations_created = fields.ReverseRelation["TG_location"]
     locations_updated = fields.ReverseRelation["TG_location"]
