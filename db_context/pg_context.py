@@ -1,5 +1,6 @@
 from tortoise import Tortoise
-from db_context.models import TG_user, TG_location, TG_image
+from db_context.models import TG_user, TG_location, TG_image, TG_role
+from db_context.setup_tables import setup_roles
 import settings
 
 
@@ -9,6 +10,8 @@ async def init_db() -> None:
                f'{settings.POSTGRES_HOST}:{int(settings.POSTGRES_PORT)}/{settings.POSTGRES_DB}',
         modules={'models': ['db_context.models', 'aerich.models']}
     )
+
+    setup_roles()
 
 async def close_db() -> None:
     await Tortoise.close_connections()
@@ -79,3 +82,7 @@ async def get_tg_user(user_id: int) -> TG_user | None:
 async def get_tg_location(location_id: int) -> TG_location | None:
     location = await TG_location.get_or_none(id=location_id)
     return location
+
+async def get_tg_role(role_code: str) -> TG_role | None:
+    role = await TG_role.get_or_none(code=role_code)
+    return role

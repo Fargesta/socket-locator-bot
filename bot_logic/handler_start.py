@@ -8,12 +8,14 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE ) -> 
     try:
         user = await pg_context.get_tg_user(update.effective_user.id)
         if not user:
+            role = await pg_context.get_tg_role("GUEST")
             user = await pg_context.create_tg_user(
                 id=update.effective_user.id,
                 first_name=update.effective_user.first_name,
                 last_name=update.effective_user.last_name,
                 username=update.effective_user.username,
-                language_code=update.effective_user.language_code
+                language_code=update.effective_user.language_code,
+                role=role
             )
     except Exception as e:
         print(f"Error getting user: {e}")
