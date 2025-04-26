@@ -19,7 +19,7 @@ class GDriveService:
         loop = asyncio.get_event_loop()
         self.service = await loop.run_in_executor(
             None,
-            lambda: build('drive', 'v3', credentials=self.credentials)
+            lambda: build('drive', 'v3', credentials=self.credentials, cache_discovery=False)
         )
         
     async def upload_image(self, file_bytes: BytesIO, filename: str) -> str:
@@ -47,8 +47,12 @@ class GDriveService:
         )
         
         response = await loop.run_in_executor(None, request.execute)
-        return response.get('id')
-        
+        return {
+            'id': response.get('id'),
+            'name': response.get('name'),
+            'size': int(response.get('size', 0))  # 'size' comes as a string, so cast to int
+        }
+    
     async def download_image(self, file_id: str) -> BytesIO:
         if not self.service:
             await self.initialize_service()
