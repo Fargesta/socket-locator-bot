@@ -47,7 +47,7 @@ class TG_image(models.Model):
     file_size = fields.IntField(null=False, default=0)
     location = fields.ForeignKeyField("models.TG_location", related_name="images", null=False, on_delete=fields.CASCADE)
     description = fields.CharField(max_length=1000, null=True, validators=[EmptyValueValidator()])
-    is_active = fields.BooleanField(default=False)
+    is_active = fields.BooleanField(default=True)
     file_saved = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now_add=True)
     created_by = fields.ForeignKeyField("models.TG_user", related_name="images_created", null=False, on_delete=fields.CASCADE)

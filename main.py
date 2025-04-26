@@ -18,6 +18,7 @@ async def main() -> None:
     app = ApplicationBuilder().token(BOT_TOKEN).arbitrary_callback_data(True).build()
 
     await pg_context.init_db()
+    await pg_context.setup_user_roles()
     print("Database initialized successfully.")
 
     await gdrive_bot_start(app)
