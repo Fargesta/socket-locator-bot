@@ -50,6 +50,28 @@ async def create_tg_location(
     )
     return location
 
+async def create_tg_image(
+        url: str,
+        file_size: int,
+        file_id: str,
+        location: TG_location,
+        file_saved: bool,
+        file_name: str| None = None,
+        description: str | None = None,
+        created_by: TG_user | None = None,
+) -> TG_image:
+    image = await TG_image.create(
+        url=url,
+        file_size=file_size,
+        file_id=file_id,
+        location=location,
+        file_saved=file_saved,
+        file_name=file_name,
+        description=description,
+        created_by=created_by
+    )
+    return image
+
 async def get_tg_user(user_id: int) -> TG_user | None:
     user = await TG_user.get_or_none(id=user_id)
     return user

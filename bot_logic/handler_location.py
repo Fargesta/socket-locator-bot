@@ -1,12 +1,14 @@
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Update
 from telegram.ext import ContextTypes, ConversationHandler
 import db_context.pg_context as pg_context
-from bot_logic.handler_cancel import cancel_callback
+from bot_logic.handler_cancel import cancel_callback, cancel_command
 from bot_logic.type_converter import type_to_name
 from file_context.g_drive_bot_service import GDriveBotService
 from typing import cast
+import settings
 
 ASK_FOR_TYPE, ASK_FOR_DESCRIPTION, ASK_FOR_IMAGE, CONFIRM_SAVE = range(4)
+UPLOAD_FOLDER_URL = f'https://drive.google.com/drive/folders/{settings.DRIVE_FOLDER_ID}'
 
 async def confirm_save(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = None
@@ -28,12 +30,23 @@ async def confirm_save(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         lat, lon = context.user_data.get("location")
         sc_type = context.user_data.get("selected_type")
-        await pg_context.create_tg_location(
+        location = await pg_context.create_tg_location(
             latitude=lat,
             longitude=lon,
             name=type_to_name(sc_type),
             socket_type=sc_type,
             description=context.user_data.get("description"),
+            created_by=user
+        )
+
+        await pg_context.create_tg_image(
+            url=UPLOAD_FOLDER_URL,
+            file_size=upload["size"],
+            file_id=upload["id"],
+            location=location,
+            file_saved=True,
+            file_name=upload["name"],
+            description=context.user_data.get("photo_caption"),
             created_by=user
         )
 
@@ -67,9 +80,15 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def ask_for_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     photo = update.message.photo
     if not photo:
-        return
+        await update.message.reply_text("❌ No photo found. Please send a photo.")
+        await cancel_command(update, context)
     
     context.user_data["photo_file_id"] = photo[-1].file_id
+
+    caption = update.message.caption
+    if caption:
+        context.user_data["photo_caption"] = caption
+
     context.user_data["messages_to_delete"].append(update.message.message_id)
 
     keyboard = [
