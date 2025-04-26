@@ -3,7 +3,7 @@ from telegram.ext import ContextTypes, ConversationHandler
 import db_context.pg_context as pg_context
 from bot_logic.handler_cancel import cancel_callback
 from bot_logic.type_converter import type_to_name
-import file_context.gdrive as gdrive
+import file_context.g_drive_service as g_drive_service
 
 ASK_FOR_TYPE, ASK_FOR_DESCRIPTION, ASK_FOR_IMAGE, CONFIRM_SAVE = range(4)
 
