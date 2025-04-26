@@ -1,5 +1,6 @@
 from tortoise import Tortoise
-from db_context.models import TG_user, TG_location, TG_image
+from db_context.models import TG_user, TG_location, TG_image, TG_role
+from db_context.setup_tables import setup_roles
 import settings
 
 
@@ -10,12 +11,14 @@ async def init_db() -> None:
         modules={'models': ['db_context.models', 'aerich.models']}
     )
 
+
 async def close_db() -> None:
     await Tortoise.close_connections()
 
 async def create_tg_user(
         id: int,
         first_name: str,
+        user_role: TG_role,
         last_name: str | None = None,
         username: str | None = None,
         language_code: str | None = None,
@@ -26,6 +29,7 @@ async def create_tg_user(
         last_name=last_name,
         username=username,
         language_code=language_code,
+        user_role=user_role,
     )
     return user
 
@@ -72,6 +76,9 @@ async def create_tg_image(
     )
     return image
 
+async def setup_user_roles() -> None:
+    await setup_roles()
+
 async def get_tg_user(user_id: int) -> TG_user | None:
     user = await TG_user.get_or_none(id=user_id)
     return user
@@ -79,3 +86,7 @@ async def get_tg_user(user_id: int) -> TG_user | None:
 async def get_tg_location(location_id: int) -> TG_location | None:
     location = await TG_location.get_or_none(id=location_id)
     return location
+
+async def get_tg_role(role_code: str) -> TG_role | None:
+    role = await TG_role.get_or_none(code=role_code.upper())
+    return role
