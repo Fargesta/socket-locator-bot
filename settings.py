@@ -14,6 +14,9 @@ POSTGRES_PASSWORD = os.getenv("POSTGRES_PASSWORD")
 POSTGRES_HOST = os.getenv("POSTGRES_HOST")
 POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 
+DRIVE_FOLDER_ID = os.getenv("DRIVE_FOLDER_ID")
+DRIVE_KEY_PATH = os.getenv("DRIVE_KEY_PATH")
+
 ENVIRONMENT = os.getenv("ENVIRONMENT", "prod").lower()
 
 if __name__ == '__main__':

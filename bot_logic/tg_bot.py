@@ -1,4 +1,4 @@
-from telegram.ext import (ApplicationBuilder,
+from telegram.ext import (Application,
                           CommandHandler,
                           MessageHandler,
                           filters,
@@ -6,45 +6,35 @@ from telegram.ext import (ApplicationBuilder,
                           CallbackQueryHandler)
 from bot_logic.handler_help import help_command
 from bot_logic.handler_start import start_command
-from bot_logic.handler_location import (ASK_FOR_DESCRIPTION,
-                                        ASK_FOR_TYPE,
-                                        ASK_FOR_IMAGE,
-                                        CONFIRM_SAVE,
-                                        handle_location,
-                                        ask_for_image,
-                                        ask_for_type,
-                                        handle_description_input,
-                                        confirm_save)
+import bot_logic.handler_location as hl
 from bot_logic.handler_cancel import cancel_callback, cancel_command
 import settings
 
 BOT_TOKEN = settings.BOT_TOKEN
 
-def bot_start() -> None:
-    app = ApplicationBuilder().token(BOT_TOKEN).arbitrary_callback_data(True).build()
-
+async def tg_bot_start(app: Application) -> None:
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("start", start_command))
 
     conv_handler = ConversationHandler(
-        entry_points=[MessageHandler(filters.LOCATION, handle_location)],
+        entry_points=[MessageHandler(filters.LOCATION, hl.handle_location)],
         states={
-            ASK_FOR_IMAGE: [
-                MessageHandler(filters.PHOTO, ask_for_image),
+            hl.ASK_FOR_IMAGE: [
+                MessageHandler(filters.PHOTO, hl.ask_for_image),
                 CallbackQueryHandler(cancel_callback, pattern="^CANCEL$"),
             ],
-            ASK_FOR_TYPE:[
-                CallbackQueryHandler(ask_for_type),
+            hl.ASK_FOR_TYPE:[
+                CallbackQueryHandler(hl.ask_for_type),
                 CallbackQueryHandler(cancel_callback, pattern="^CANCEL$"),
             ],
-            ASK_FOR_DESCRIPTION: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, handle_description_input),
-                CallbackQueryHandler(handle_description_input, pattern="^SKIP$"),
+            hl.ASK_FOR_DESCRIPTION: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, hl.handle_description_input),
+                CallbackQueryHandler(hl.handle_description_input, pattern="^SKIP$"),
                 CallbackQueryHandler(cancel_callback, pattern="^CANCEL$"),
                 CommandHandler("cancel", cancel_command),
             ],
-            CONFIRM_SAVE: [
-                CallbackQueryHandler(confirm_save, pattern="^CONFIRM$"),
+            hl.CONFIRM_SAVE: [
+                CallbackQueryHandler(hl.confirm_save, pattern="^CONFIRM$"),
                 CallbackQueryHandler(cancel_callback, pattern="^CANCEL$")
             ]
         },
@@ -54,4 +44,4 @@ def bot_start() -> None:
     app.add_handler(conv_handler)
 
     print("Bot started successfully.")
-    app.run_polling()
+    

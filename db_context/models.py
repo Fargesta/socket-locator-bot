@@ -18,14 +18,14 @@ class TG_user(models.Model):
         return self.id
 
 class TG_location(models.Model):
-    id = fields.IntField(primary_key=True)
+    id = fields.IntField(primary_key=True, generated=True)
     latitude = fields.FloatField(null=False)
     longitude = fields.FloatField(null=False)
     name = fields.CharField(max_length = 255, null=True, validators=[EmptyValueValidator()])
-    socket_type = fields.CharField(max_length=4, null=True, validators=[EmptyValueValidator()])
+    socket_type = fields.CharField(max_length=4, null=False, validators=[EmptyValueValidator()])
     description = fields.CharField(max_length = 2000, null=True, validators=[EmptyValueValidator()])
     layer = fields.CharField(max_length=500, null=True, validators=[EmptyValueValidator()])
-    is_active = fields.BooleanField(default=True)
+    is_active = fields.BooleanField(default=False)
     created_at = fields.DatetimeField(auto_now_add=True)
     updated_at = fields.DatetimeField(auto_now=True)
     created_by = fields.ForeignKeyField("models.TG_user", related_name="locations_created", null=False, on_delete=fields.CASCADE)
@@ -40,7 +40,8 @@ class TG_location(models.Model):
 class TG_image(models.Model):
     id = fields.IntField(primary_key=True, generated=True)
     url = fields.CharField(max_length=10000, null=False, validators=[EmptyValueValidator()])
-    file_name = fields.CharField(max_length=255, null=False, validators=[EmptyValueValidator()])
+    file_name = fields.CharField(max_length=1000, null=True, validators=[EmptyValueValidator()])
+    file_id = fields.CharField(max_length=1000, null=False, validators=[EmptyValueValidator()])
     file_size = fields.IntField(null=False, default=0)
     location = fields.ForeignKeyField("models.TG_location", related_name="images", null=False, on_delete=fields.CASCADE)
     description = fields.CharField(max_length=1000, null=True, validators=[EmptyValueValidator()])
@@ -50,4 +51,4 @@ class TG_image(models.Model):
     created_by = fields.ForeignKeyField("models.TG_user", related_name="images_created", null=False, on_delete=fields.CASCADE)
 
     def __str__(self):
-        return self.url
+        return self.id
