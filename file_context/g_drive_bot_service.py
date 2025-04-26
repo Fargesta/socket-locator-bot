@@ -1,31 +1,55 @@
+import time
 from io import BytesIO
-from g_drive_service import GoogleDriveService
+from typing import Optional, List
+import aiohttp
 from telegram import Update
 from telegram.ext import ContextTypes
-import aiohttp
+from file_context.g_drive_service import GDriveService
 
-class TelegramGDriveBot:
+class GDriveBotService:
     """
     Telegram bot module for handling image uploads and downloads with Google Drive.
     """
     
-    def __init__(self, service_account_file: str, drive_folder_id: str):
+    def __init__(self, gdrive_service: GDriveService):
         """
         Initialize the Telegram Google Drive bot.
         
         Args:
-            service_account_file: Path to the service account JSON key file
-            drive_folder_id: ID of the Google Drive folder to use
+            gdrive_service: GDriveService instance for Drive operations
         """
-        self.gdrive = GoogleDriveService(service_account_file, drive_folder_id)
+        self.gdrive = gdrive_service
         # Dictionary to store user image mappings (user_id -> [file_ids])
         self.user_images = {}
         
-    async def initialize(self):
-        """Initialize the Google Drive service."""
-        await self.gdrive.initialize_service()
+    async def upload_image(self, file_bytes: BytesIO, user_id: int, filename: str = None) -> str:
+        """
+        Upload an image to Google Drive.
         
-    async def handle_image_upload(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
+        Args:
+            file_bytes: BytesIO object containing the image
+            user_id: Telegram user ID
+            filename: Optional filename (generates one if not provided)
+            
+        Returns:
+            File ID of the uploaded image
+        """
+        # Generate filename if not provided
+        if not filename:
+            timestamp = int(time.time())
+            filename = f"image_{user_id}_{timestamp}.jpg"
+        
+        # Upload to Google Drive
+        file_id = await self.gdrive.upload_image(file_bytes, filename)
+        
+        # Store the file ID for the user
+        if user_id not in self.user_images:
+            self.user_images[user_id] = []
+        self.user_images[user_id].append(file_id)
+        
+        return file_id
+        
+    async def upload_telegram_photo(self, update: Update, context: ContextTypes.DEFAULT_TYPE) -> str:
         """
         Handle image upload from Telegram user.
         
@@ -38,6 +62,7 @@ class TelegramGDriveBot:
         """
         # Get the photo with the highest resolution
         photo = update.message.photo[-1]
+        user_id = update.effective_user.id
         
         # Get file from Telegram
         file = await context.bot.get_file(photo.file_id)
@@ -47,21 +72,7 @@ class TelegramGDriveBot:
             async with session.get(file.file_path) as response:
                 if response.status == 200:
                     file_content = BytesIO(await response.read())
-                    
-                    # Generate a unique filename
-                    user_id = update.effective_user.id
-                    timestamp = context.bot.get_me().date.timestamp()
-                    filename = f"image_{user_id}_{timestamp}.jpg"
-                    
-                    # Upload to Google Drive
-                    file_id = await self.gdrive.upload_image(file_content, filename)
-                    
-                    # Store the file ID for the user
-                    if user_id not in self.user_images:
-                        self.user_images[user_id] = []
-                    self.user_images[user_id].append(file_id)
-                    
-                    return file_id
+                    return await self.upload_image(file_content, user_id)
         
         return None
         
@@ -130,35 +141,3 @@ class TelegramGDriveBot:
             self.user_images[user_id].remove(file_id)
             
         return result
-
-
-# Example usage in a Telegram bot handler (not to be included in the module)
-async def handle_photo(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Example handler for photo messages."""
-    # Access the bot from context
-    gdrive_bot = context.bot_data["gdrive_bot"]
-    
-    # Upload the image
-    file_id = await gdrive_bot.handle_image_upload(update, context)
-    
-    # Send a confirmation message
-    if file_id:
-        await update.message.reply_text(f"Image uploaded successfully! ID: {file_id}")
-    else:
-        await update.message.reply_text("Failed to upload image.")
-
-
-async def handle_get_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Example handler for retrieving images."""
-    # Access the bot from context
-    gdrive_bot = context.bot_data["gdrive_bot"]
-    
-    # Get the user's latest image
-    user_id = update.effective_user.id
-    image_data = await gdrive_bot.get_user_image(user_id)
-    
-    # Send the image back to the user
-    if image_data:
-        await update.message.reply_photo(image_data)
-    else:
-        await update.message.reply_text("No images found for you.")

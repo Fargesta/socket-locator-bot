@@ -1,18 +1,13 @@
 import asyncio
 from io import BytesIO
 from typing import Optional, Tuple, List
-
-
 from google.oauth2 import service_account
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaIoBaseUpload, MediaIoBaseDownload
 
-
-
-class GoogleDriveService:
+class GDriveService:
     """
-    Asynchronous Google Drive manager for Telegram bot.
-    Handles uploading and downloading of files using a service account.
+    Asynchronous Google Drive manager for handling file operations.
     """
     
     def __init__(self, service_account_file: str, folder_id: str):
@@ -28,12 +23,10 @@ class GoogleDriveService:
             scopes=['https://www.googleapis.com/auth/drive']
         )
         self.folder_id = folder_id
-        # We'll initialize the service in an async method
         self.service = None
         
     async def initialize_service(self):
         """Initialize the Google Drive service in an async context."""
-        # Run the blocking operation in a thread pool
         loop = asyncio.get_event_loop()
         self.service = await loop.run_in_executor(
             None,
@@ -54,23 +47,19 @@ class GoogleDriveService:
         if not self.service:
             await self.initialize_service()
             
-        # Reset file pointer to beginning
-        file_bytes.seek(0)
+        file_bytes.seek(0)  # Reset file pointer to beginning
         
-        # Prepare the file metadata
         file_metadata = {
             'name': filename,
             'parents': [self.folder_id]
         }
         
-        # Prepare the media upload
         media = MediaIoBaseUpload(
             file_bytes, 
-            mimetype='image/jpeg',  # Adjust based on the file type if needed
+            mimetype='image/jpeg',
             resumable=True
         )
         
-        # Execute the upload in a thread pool
         loop = asyncio.get_event_loop()
         request = self.service.files().create(
             body=file_metadata,
@@ -78,7 +67,6 @@ class GoogleDriveService:
             fields='id'
         )
         
-        # Execute the request in a thread to avoid blocking
         response = await loop.run_in_executor(None, request.execute)
         return response.get('id')
         
@@ -95,22 +83,16 @@ class GoogleDriveService:
         if not self.service:
             await self.initialize_service()
             
-        # Create BytesIO object to store the downloaded file
         file_bytes = BytesIO()
-        
-        # Create a request to download the file
         request = self.service.files().get_media(fileId=file_id)
         downloader = MediaIoBaseDownload(file_bytes, request)
         
-        # Download the file in chunks
         loop = asyncio.get_event_loop()
         done = False
         while not done:
-            # Execute chunk download in a thread pool
             status, done = await loop.run_in_executor(None, downloader.next_chunk)
         
-        # Reset the file pointer to the beginning
-        file_bytes.seek(0)
+        file_bytes.seek(0)  # Reset file pointer to beginning
         return file_bytes
         
     async def list_images(self, limit: int = 10) -> List[Tuple[str, str]]:
@@ -126,10 +108,8 @@ class GoogleDriveService:
         if not self.service:
             await self.initialize_service()
             
-        # Build the query to search for files in the folder
         query = f"'{self.folder_id}' in parents and trashed = false"
         
-        # Execute the query in a thread pool
         loop = asyncio.get_event_loop()
         response = await loop.run_in_executor(
             None,
@@ -157,10 +137,8 @@ class GoogleDriveService:
         if not self.service:
             await self.initialize_service()
             
-        # Build the query to search for the file by name in the folder
         query = f"name = '{filename}' and '{self.folder_id}' in parents and trashed = false"
         
-        # Execute the query in a thread pool
         loop = asyncio.get_event_loop()
         response = await loop.run_in_executor(
             None,
@@ -188,7 +166,6 @@ class GoogleDriveService:
             await self.initialize_service()
             
         try:
-            # Execute the delete request in a thread pool
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(
                 None,

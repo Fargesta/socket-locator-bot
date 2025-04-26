@@ -1,4 +1,4 @@
-from telegram.ext import (ApplicationBuilder,
+from telegram.ext import (Application,
                           CommandHandler,
                           MessageHandler,
                           filters,
@@ -12,9 +12,7 @@ import settings
 
 BOT_TOKEN = settings.BOT_TOKEN
 
-def bot_start() -> None:
-    app = ApplicationBuilder().token(BOT_TOKEN).arbitrary_callback_data(True).build()
-
+async def tg_bot_start(app: Application) -> None:
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("start", start_command))
 
@@ -46,4 +44,4 @@ def bot_start() -> None:
     app.add_handler(conv_handler)
 
     print("Bot started successfully.")
-    app.run_polling()
+    
