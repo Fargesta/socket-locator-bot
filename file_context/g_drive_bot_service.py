@@ -61,11 +61,12 @@ class GDriveBotService:
             File ID of the uploaded image
         """
         # Get the photo with the highest resolution
-        photo = update.message.photo[-1]
+        #photo = update.message.photo[-1]
+        file_id = context.user_data["photo_file_id"]
         user_id = update.effective_user.id
         
         # Get file from Telegram
-        file = await context.bot.get_file(photo.file_id)
+        file = await context.bot.get_file(file_id)
         
         # Download the file to BytesIO
         async with aiohttp.ClientSession() as session:

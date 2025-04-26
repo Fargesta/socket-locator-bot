@@ -4,6 +4,7 @@ import db_context.pg_context as pg_context
 from bot_logic.handler_cancel import cancel_callback
 from bot_logic.type_converter import type_to_name
 from file_context.g_drive_bot_service import GDriveBotService
+from typing import cast
 
 ASK_FOR_TYPE, ASK_FOR_DESCRIPTION, ASK_FOR_IMAGE, CONFIRM_SAVE = range(4)
 
@@ -12,11 +13,18 @@ async def confirm_save(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
 
+    gdrive_bot = cast(GDriveBotService, context.bot_data["gdrive_bot"])
+
     try:
         user = await pg_context.get_tg_user(update.effective_user.id)
         if not user:
             await query.message.reply_text("❌ User not found. Cannot save.")
             raise Exception("User not found in the database.")
+        
+        upload = await gdrive_bot.upload_telegram_photo(update, context)
+        if not upload:
+            await query.message.reply_text("❌ Failed to upload image. Cannot save.")
+            raise Exception("Failed to upload image.")
         
         lat, lon = context.user_data.get("location")
         sc_type = context.user_data.get("selected_type")
