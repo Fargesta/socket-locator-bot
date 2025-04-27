@@ -4,7 +4,7 @@ from telegram.ext import ContextTypes
 import bot_logic.return_states as rs
 
 
-async def share_location_command(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
+async def handle_share_location(update: Update, context: ContextTypes.DEFAULT_TYPE) -> int:
     """Handle the location sharing process."""
     keyboard = [
         [KeyboardButton("📍 Share Location", request_location=True)]
