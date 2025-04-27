@@ -6,8 +6,8 @@ from bot_logic.type_converter import type_to_name
 from file_context.g_drive_bot_service import GDriveBotService
 from typing import cast
 import settings
+import bot_logic.return_states as rs
 
-ASK_FOR_TYPE, ASK_FOR_DESCRIPTION, ASK_FOR_IMAGE, CONFIRM_SAVE = range(4)
 UPLOAD_FOLDER_URL = f'https://drive.google.com/drive/folders/{settings.DRIVE_FOLDER_ID}'
 
 async def confirm_save(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -74,7 +74,7 @@ async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
         reply_markup=InlineKeyboardMarkup(keyboard)
     )
     context.user_data["messages_to_delete"].append(sent.message_id)
-    return ASK_FOR_IMAGE
+    return rs.ASK_FOR_IMAGE
 
 
 async def ask_for_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -100,7 +100,7 @@ async def ask_for_image(update: Update, context: ContextTypes.DEFAULT_TYPE):
     sent = await update.message.reply_text("Please select socket type:", reply_markup=reply_markup)
     context.user_data['messages_to_delete'] = [update.message.message_id, sent.message_id]
 
-    return ASK_FOR_TYPE
+    return rs.ASK_FOR_TYPE
 
 
 async def ask_for_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -121,7 +121,7 @@ async def ask_for_type(update: Update, context: ContextTypes.DEFAULT_TYPE):
     msg = await query.message.reply_text("Please provide a description for the location:", reply_markup=InlineKeyboardMarkup(keyboard))
     context.user_data['messages_to_delete'].append(msg.message_id)
 
-    return ASK_FOR_DESCRIPTION
+    return rs.ASK_FOR_DESCRIPTION
 
 
 async def handle_description_input(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -156,4 +156,4 @@ async def handle_description_input(update: Update, context: ContextTypes.DEFAULT
     )
     context.user_data["messages_to_delete"].append(msg.message_id)
 
-    return CONFIRM_SAVE
+    return rs.CONFIRM_SAVE
