@@ -16,17 +16,21 @@ async def handle_share_location(update: Update, context: ContextTypes.DEFAULT_TY
         reply_markup=reply_markup
     )
 
-    # Start a 30-second timeout in background
-    asyncio.create_task(location_timeout(update, context))
+    # ✅ Save timeout task inside user_data
+    timeout_task = asyncio.create_task(location_timeout(update, context))
+    context.user_data["search_timeout_task"] = timeout_task
+
     return rs.ASK_FOR_LOCATION
 
 async def location_timeout(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     """Timeout after 30 seconds if no location shared"""
-    context.user_data["search_in_progress"] = True
-    await asyncio.sleep(30)
+    try:
+        await asyncio.sleep(30)
 
-    if context.user_data.get("search_in_progress", False):
         await update.message.reply_text(
             "⌛ You didn't share your location in time.\n"
-            "If you still want to find the closest spot, please send /search again."
+            "If you still want to find or add socket, please repeat command."
         )
+    except asyncio.CancelledError:
+        # ✅ Task was canceled because user shared location → silently ignore
+        pass

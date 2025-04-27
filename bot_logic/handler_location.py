@@ -3,6 +3,11 @@ from telegram.ext import ContextTypes, ConversationHandler
 import bot_logic.return_states as rs        
 
 async def handle_location(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    # ✅ Cancel timeout task
+    timeout_task = context.user_data.pop("search_timeout_task", None)
+    if timeout_task:
+        timeout_task.cancel()
+
     location = update.message.location
     context.user_data["location"] = (location.latitude, location.longitude)
     context.user_data["messages_to_delete"] = [update.message.message_id]
