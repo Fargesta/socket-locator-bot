@@ -17,7 +17,7 @@ BOT_TOKEN = settings.BOT_TOKEN
 async def tg_bot_start(app: Application) -> None:
 
     await app.bot.set_my_commands([
-        BotCommand('add_socket', 'Add a socket location'),
+        #BotCommand('add_socket', 'Add a socket location'),
         #BotCommand('search', 'Search for a socket location'),
         BotCommand("start", "Start the bot"),
         BotCommand("help", "Get help"),
