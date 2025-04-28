@@ -1,11 +1,9 @@
 from math import radians, cos, sin, asin, sqrt
 from db_context.models import TG_location as Socket
-
-MAX_DISTANCE_KM = 200
+from settings import MAX_DISTANCE_KM
 
 async def find_closest_socket(user_lat, user_lon):
-    # Rough degree difference for 200 km (~1.8 degrees latitude)
-    degree_radius = 2.0  
+    degree_radius = MAX_DISTANCE_KM / 111  # 1 degree ≈ 111 km
 
     min_lat = user_lat - degree_radius
     max_lat = user_lat + degree_radius
