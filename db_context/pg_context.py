@@ -90,3 +90,6 @@ async def get_tg_location(location_id: int) -> TG_location | None:
 async def get_tg_role(role_code: str) -> TG_role | None:
     role = await TG_role.get_or_none(code=role_code.upper())
     return role
+
+async def get_tg_images_for_location(location_id: int) -> list[TG_image]:
+    return await TG_image.filter(location_id=location_id).all()

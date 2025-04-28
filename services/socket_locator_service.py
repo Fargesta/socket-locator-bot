@@ -1,9 +1,9 @@
 from math import radians, cos, sin, asin, sqrt
 from db_context.models import TG_location as Socket
-from settings import MAX_DISTANCE_KM
+from settings import MAX_RADIUS_KM
 
 async def find_closest_socket(user_lat, user_lon):
-    degree_radius = MAX_DISTANCE_KM / 111  # 1 degree ≈ 111 km
+    degree_radius = MAX_RADIUS_KM / 111  # 1 degree ≈ 111 km
 
     min_lat = user_lat - degree_radius
     max_lat = user_lat + degree_radius
@@ -21,7 +21,7 @@ async def find_closest_socket(user_lat, user_lon):
 
     for socket in nearby_sockets:
         dist = haversine(user_lon, user_lat, socket.longitude, socket.latitude)
-        if dist <= MAX_DISTANCE_KM and dist < min_distance:
+        if dist <= MAX_RADIUS_KM and dist < min_distance:
             min_distance = dist
             closest_socket = socket
 

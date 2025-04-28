@@ -67,3 +67,6 @@ class GDriveBotService:
             self.user_images[user_id].remove(file_id)
             
         return result
+    
+    async def get_image_by_id(self, file_id: str) -> Optional[BytesIO]:
+        return await self.gdrive.download_image(file_id)
