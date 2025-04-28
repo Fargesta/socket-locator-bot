@@ -2,7 +2,7 @@ from bot_logic.type_converter import type_to_name
 from telegram.ext import ContextTypes, ConversationHandler
 import db_context.pg_context as pg_context
 from telegram import Update
-from file_context.g_drive_bot_service import GDriveBotService
+from services.g_drive_bot_service import GDriveBotService
 from typing import cast
 import settings
 

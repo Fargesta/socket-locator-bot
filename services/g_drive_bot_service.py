@@ -4,7 +4,7 @@ from typing import Optional, List
 import aiohttp
 from telegram import Update
 from telegram.ext import ContextTypes
-from file_context.g_drive_service import GDriveService
+from services.g_drive_service import GDriveService
 
 class GDriveBotService:
     def __init__(self, gdrive_service: GDriveService):

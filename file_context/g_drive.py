@@ -1,5 +1,5 @@
-from file_context.g_drive_bot_service import GDriveBotService
-from file_context.g_drive_service import GDriveService
+from services.g_drive_bot_service import GDriveBotService
+from services.g_drive_service import GDriveService
 from telegram.ext import Application
 import settings
 
