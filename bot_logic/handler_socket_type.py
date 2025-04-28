@@ -15,7 +15,7 @@ async def handle_socket_type(update: Update, context: ContextTypes.DEFAULT_TYPE)
     context.user_data['messages_to_delete'].append(query.message.message_id)
 
     keyboard = [
-        [InlineKeyboardButton("⏭️ Skip", callback_data="SKIP")], [InlineKeyboardButton("❌ Cancel", callback_data="cancel")]
+        [InlineKeyboardButton("⏭️ Skip", callback_data="SKIP")], [InlineKeyboardButton("❌ Cancel", callback_data="CANCEL")]
     ]
 
     msg = await query.message.reply_text("Please provide a description for the location:", reply_markup=InlineKeyboardMarkup(keyboard))
