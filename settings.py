@@ -19,5 +19,7 @@ DRIVE_KEY_PATH = os.getenv("DRIVE_KEY_PATH")
 
 ENVIRONMENT = os.getenv("ENVIRONMENT", "prod").lower()
 
+MAX_RADIUS_KM = int(os.getenv("MAX_RADIUS_KM", 200))
+
 if __name__ == '__main__':
     pass
